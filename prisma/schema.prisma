@@ -24,30 +24,37 @@ enum Role {
   INSTRUCTOR
 }
 
+enum Gender {
+  MALE
+  FEMALE
+}
+
 model User {
-  id           String        @id @default(uuid())
-  firstName    String
-  lastName     String
-  email        String        @unique
-  password     String
-  country      String
-  phone        String        @unique
-  age          Int?
-  birthDate    DateTime?
-  role         Role          @default(STUDENT)
-  avatar       String?
-  bio          String?
-  genCode      Int           @default(000000)
-  expCode      DateTime?
-  isAdmin      Boolean       @default(false)
-  isOnline     Boolean       @default(false)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  certificates Certificate[]
-  educations   Education[]
-  links        Link[]
-  instructor   Instructor?
-  courses      Course[]      @relation("enrolled")
+  id                String        @id @default(uuid())
+  firstName         String
+  lastName          String
+  email             String        @unique
+  password          String
+  country           String?
+  phone             String?       @unique
+  age               Int?
+  gender            Gender?
+  birthDate         DateTime?
+  role              Role?         @default(STUDENT)
+  avatar            String?
+  bio               String?
+  genCode           Int           @default(000000)
+  expCode           DateTime?
+  isProfileComplete Boolean       @default(false)
+  isAdmin           Boolean       @default(false)
+  isOnline          Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  certificates      Certificate[]
+  educations        Education[]
+  links             Link[]
+  instructor        Instructor?
+  courses           Course[]      @relation("enrolled")
 }
 
 model Instructor {

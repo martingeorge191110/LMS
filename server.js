@@ -1,8 +1,9 @@
-import express from "express";
+import express from 'express';
 import dotenv from "dotenv"
 import cors from "cors"
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import ErrorHandling from "./middlewares/errorHandling.js";
 
 dotenv.config()
 
@@ -23,6 +24,11 @@ server.use(express.urlencoded({
 }))
 
 
+/* Auth Router */
+// server.use("/auth", )
+
+/* Middle Ware Error handling */
+server.use("*", ErrorHandling.responseError)
 
 server.listen(envVariables.PORT || 7000, () => {
    console.log("Server listening to Port", envVariables.PORT || 7000)
