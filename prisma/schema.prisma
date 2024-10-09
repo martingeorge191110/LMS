@@ -1,8 +1,5 @@
 // This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Learn more at https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -11,4 +8,96 @@ generator client {
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+enum Degree {
+  BACHELOR
+  DIPLOMA
+  ASSOCIATE
+  MASTER
+  DOCTORATE
+  CERTIFICATE
+}
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+}
+
+model User {
+  id           String        @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String        @unique
+  password     String
+  country      String
+  phone        String        @unique
+  age          Int?
+  birthDate    DateTime?
+  role         Role          @default(STUDENT)
+  avatar       String?
+  bio          String?
+  genCode      Int           @default(000000)
+  expCode      DateTime?
+  isAdmin      Boolean       @default(false)
+  isOnline     Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  certificates Certificate[]
+  educations   Education[]
+  links        Link[]
+  instructor   Instructor?
+  courses      Course[]      @relation("enrolled")
+}
+
+model Instructor {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id])
+  description       String?
+  title             String?
+  specialize        String?
+  yearsOfExperience Int?
+  courses           Course[] @relation("teaching")
+}
+
+model Education {
+  id          String    @id @default(uuid())
+  entity      String
+  startDate   DateTime
+  endDate     DateTime?
+  active      Boolean?  @default(true)
+  degree      Degree
+  major       String
+  description String
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model Certificate {
+  id          String   @id @default(uuid())
+  entity      String
+  date        DateTime
+  major       String
+  description String
+  avatar      String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Link {
+  id          String  @id @default(uuid())
+  website     String
+  link        String
+  description String?
+  userId      String
+  user        User    @relation(fields: [userId], references: [id])
+}
+
+model Course {
+  id           String     @id @default(uuid())
+  name         String
+  instructorId String
+  instructor   Instructor @relation("teaching", fields: [instructorId], references: [id])
+  students     User[]     @relation("enrolled")
 }
