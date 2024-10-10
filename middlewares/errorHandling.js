@@ -17,6 +17,12 @@ class ErrorHandling extends Error {
       return (new ErrorHandling(statusCode, message))
    }
 
+   /* Function to catch errors */
+   static catchError = (process) => {
+      const message = `Something wnet wrong within ${process} process!`
+      return (this.createError(500, message))
+   }
+
    /* Function middleware for respond with errors */
    static responseError (err, req, res, next) {
       return (res.status(err.statusCode).json({
