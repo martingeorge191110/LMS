@@ -41,12 +41,14 @@ model User {
   gender            Gender?
   birthDate         DateTime?
   role              Role?         @default(STUDENT)
+  title             String?
   avatar            String?
   bio               String?
   genCode           Int           @default(000000)
   expCode           DateTime?
   isProfileComplete Boolean       @default(false)
   isAdmin           Boolean       @default(false)
+  isInstructor      Boolean       @default(false)
   isOnline          Boolean       @default(false)
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
