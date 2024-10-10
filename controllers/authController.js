@@ -130,7 +130,7 @@ class AuthController {
          return (next(ErrorHandling.createError(400, "Email address is not Valid!")))
 
       const code = Number(String(Math.random()).slice(3,9))
-      const expDate = new Date(Date.now() + 15 * 60 * 1000)
+      const expDate = new Date(Date.now() + 5 * 60 * 1000);
       try {
          const user = await prismaObj.user.update({
             where: {email},
@@ -169,7 +169,7 @@ class AuthController {
       if (!isEmail)
          return (next(ErrorHandling.createError(400, "Email address is not Valid!")))
 
-      const currentDate = new Date(Date.now() + 15 * 60 * 1000)
+      const currentDate = new Date(Date.now() + 1 * 60 * 1000)
       try {
          const user = await prismaObj.user.findUnique({
             where: {email}
@@ -179,7 +179,7 @@ class AuthController {
          if (!cmpDate)
             return (next(ErrorHandling.createError(409, "Code expired, Please request a new code!")))
 
-         const cmpCode = user.genCode === code ? true : false
+         const cmpCode = user.genCode === Number(code) ? true : false
          if (!cmpCode)
             return (next(ErrorHandling.createError(400, "Generated code is wrond!")))
 

@@ -3,4 +3,3 @@ node_modules
 .env
 # Keoo migrations out of version control
 prisma/migrations
-routers

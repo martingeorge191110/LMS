@@ -56,10 +56,10 @@ class AuthValidation {
    /* Check Whether neccessary fields for user Login is Valid */
    static loginValid = (email, password) => {
       const emailValid = validator.isEmail(email)
-      const password = validator.isEmpty(password)
+      const isPassword = validator.isEmpty(password)
       if (!emailValid)
          return (new AuthValidation(false, "Email is not Valid!"))
-      else if (password)
+      else if (isPassword)
          return (new AuthValidation(false, "Password Field is Empty, please enter your Password!"))
 
       return (new AuthValidation(true, "Login fields is Valid, you can go to the next step!"))

@@ -4,6 +4,7 @@ import cors from "cors"
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import ErrorHandling from "./middlewares/errorHandling.js";
+import AuthRouter from './routers/authRouter.js';
 
 dotenv.config()
 
@@ -25,7 +26,7 @@ server.use(express.urlencoded({
 
 
 /* Auth Router */
-// server.use("/auth", )
+server.use("/api/auth", AuthRouter)
 
 /* Middle Ware Error handling */
 server.use("*", ErrorHandling.responseError)
