@@ -24,13 +24,23 @@ class ErrorHandling extends Error {
    }
 
    /* Function middleware for respond with errors */
-   static responseError (err, req, res, next) {
+   static responseError = (err, req, res, next) => {
       return (res.status(err.statusCode).json({
          success: false,
          message: err.message,
          status: err.status,
          stack: err.stack
       }))
+   }
+
+   
+   static tokenErrors = (authError, tokenError, tokenValid) => {
+      if (authError)
+         return (this.createError(400, "Authorization Must be included in Header"))
+      else if (tokenError)
+         return (this.createError(400, "Token is not found in Header"))
+      else if (tokenValid)
+         return (this.createError(400, "Token is not Valid!"))
    }
 }
 
