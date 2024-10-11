@@ -5,28 +5,37 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import ErrorHandling from "./middlewares/errorHandling.js";
 import AuthRouter from './routers/authRouter.js';
+import UserRouter from './routers/userRouter.js';
+import bodyParser from 'body-parser';
 
 dotenv.config()
 
 const envVariables = process.env
 const server = express()
 
+server.use(bodyParser.json({ limit: '50mb' }));
+
 server.use(morgan("tiny"))
 server.use(cookieParser())
 server.use(
-   cors({
-   //  origin: "http://localhost:3000",
-      credentials: true
-   })
+   cors(
+      {
+         origin: envVariables.NODE_ENV === "development" ? "*" : null
+         ,credentials: true
+      })
 );
 server.use(express.json())
 server.use(express.urlencoded({
+   limit: '50mb',
    'extended': true
 }))
 
 
 /* Auth Router */
 server.use("/api/auth", AuthRouter)
+
+/* User Controller */
+server.use("/api/user", UserRouter)
 
 /* Middle Ware Error handling */
 server.use("*", ErrorHandling.responseError)
