@@ -62,7 +62,7 @@ model User {
 model Instructor {
   id                String   @id @default(uuid())
   userId            String   @unique
-  user              User     @relation(fields: [userId], references: [id])
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   description       String?
   specialize        String?
   yearsOfExperience Int?
@@ -79,7 +79,7 @@ model Education {
   major       String
   description String
   userId      String
-  user        User      @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Certificate {
@@ -90,7 +90,7 @@ model Certificate {
   description String
   avatar      String?
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Link {
@@ -99,13 +99,13 @@ model Link {
   link        String
   description String?
   userId      String
-  user        User    @relation(fields: [userId], references: [id])
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Course {
   id           String     @id @default(uuid())
   name         String
   instructorId String
-  instructor   Instructor @relation("teaching", fields: [instructorId], references: [id])
+  instructor   Instructor @relation("teaching", fields: [instructorId], references: [id], onDelete: Cascade)
   students     User[]     @relation("enrolled")
 }

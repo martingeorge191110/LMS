@@ -66,22 +66,26 @@ class UserController {
     *             [1] --> get token verification errors and inf
     *             [2] --> after checking validation, retrieve user and response
     */
-   // static retrieveProfile = async (req, res, next) => {
-   //    const {id, authError, tokenError, tokenValid} = req
+   static retrieveProfile = async (req, res, next) => {
+      const {id} = req
 
-   //    if (authError || tokenError || tokenValid)
-   //       return (next(ErrorHandling.tokenErrors(authError, tokenError, tokenValid)))
+      try {
+         const user = await prismaObj.$queryRaw
+         `SELECT *, 
+         (SELECT JSON_ARRAY(Link) FROM Link l WHERE l.userId = ${id}) AS links,
+         (SELECT JSON_object('id', i.id, 'description', i.description, 'specialize', i.specialize, 'yearsOfExperience', i.yearsOfExperience) FROM Instructor i
+         WHERE i.userId = ${id}) AS instructor
+         FROM User u
+         WHERE u.id = ${id};`
 
-   //    try {
-   //       const user = await prismaObj.$queryRaw
-   //       `SELECT * FROM User
-   //       WHERE id = ${id}`.then(result => result[0])
+         if (!user)
+            return (next(ErrorHandling.createError(400, "User is not Found!")))
 
-   //       return (this.response(res, 200, "Seccesfuly, Retrieved!", user))
-   //    } catch (err) {
-   //       return (next(ErrorHandling.catchError("Profile Retriving!")))
-   //    }
-   // }
+         return (this.response(res, 200, "User Retrieved, Seccesfuly!", user))
+      } catch (err) {
+         return (next(ErrorHandling.catchError("Retrieving user information")))
+      }
+   }
 
    /**
     * updateProfile Controller
