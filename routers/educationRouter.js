@@ -2,14 +2,14 @@ import express from 'express';
 import EducationController from '../controllers/educationController.js';
 
 
-const educationRouter = express.Router()
+const EducationRouter = express.Router()
 
 
-educationRouter.route("/")
+EducationRouter.route("/")
                            .get(EducationController.retrieveAll)
                            .delete(EducationController.deleteOne)
                            .put(EducationController.updateOne)
                            .post(EducationController.createOne)
 
 
-export default educationRouter;
+export default EducationRouter;

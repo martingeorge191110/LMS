@@ -8,6 +8,7 @@ import AuthRouter from './routers/authRouter.js';
 import UserRouter from './routers/userRouter.js';
 import bodyParser from 'body-parser';
 import CertificateRouter from './routers/certificateRouter.js';
+import EducationRouter from './routers/educationRouter.js';
 
 dotenv.config()
 
@@ -40,6 +41,9 @@ server.use("/api/user", UserRouter)
 
 /* Certificates Router */
 server.use("/api/certificate", CertificateRouter)
+
+/* Education Router */
+server.use("/api/education", EducationRouter)
 
 /* Middle Ware Error handling */
 server.use("*", ErrorHandling.responseError)
