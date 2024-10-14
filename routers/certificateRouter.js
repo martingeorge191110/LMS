@@ -10,6 +10,9 @@ CertificateRouter.use(verifyToken)
 
 CertificateRouter.route("/")
                            .post(CertificatesController.addOne)
+                           .delete(CertificatesController.deleteOne)
+                           .put(CertificatesController.updateOne)
+                           .get(CertificatesController.retrieveCertificates)
 
 const upload = multer({ limits: { fileSize: 50 * 1024 * 1024 } });
 CertificateRouter.route("/avatar").put(upload.fields([{ name: "file" }, { name: "certificateId" }]), CertificatesController.addCertImg)
