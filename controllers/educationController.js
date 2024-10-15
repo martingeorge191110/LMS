@@ -15,7 +15,7 @@ class EducationController {
 
    static response = (res, code, message, data) => {
       return (res.status(code).json(
-         new CertificatesController(message, data)
+         new EducationController(message, data)
       ))
    }
 
