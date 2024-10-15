@@ -29,34 +29,41 @@ enum Gender {
   FEMALE
 }
 
+enum Level {
+  BEGINNER
+  INTERMIDATE
+  ADVANCED
+}
+
 model User {
-  id                String        @id @default(uuid())
+  id                String         @id @default(uuid())
   firstName         String
   lastName          String
-  email             String        @unique
+  email             String         @unique
   password          String
   country           String?
-  phone             String?       @unique
+  phone             String?        @unique
   age               Int?
   gender            Gender?
   birthDate         DateTime?
-  role              Role?         @default(STUDENT)
+  role              Role?          @default(STUDENT)
   title             String?
   avatar            String?
   bio               String?
-  genCode           Int           @default(000000)
+  genCode           Int            @default(000000)
   expCode           DateTime?
-  isProfileComplete Boolean       @default(false)
-  isAdmin           Boolean       @default(false)
-  isInstructor      Boolean       @default(false)
-  isOnline          Boolean       @default(false)
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  isProfileComplete Boolean        @default(false)
+  isAdmin           Boolean        @default(false)
+  isInstructor      Boolean        @default(false)
+  isOnline          Boolean        @default(false)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
   certificates      Certificate[]
   educations        Education[]
   links             Link[]
   instructor        Instructor?
-  courses           Course[]      @relation("enrolled")
+  courses           Course[]       @relation("enrolled")
+  comments          CourseReview[] @relation("review")
 }
 
 model Instructor {
@@ -103,9 +110,32 @@ model Link {
 }
 
 model Course {
-  id           String     @id @default(uuid())
-  name         String
-  instructorId String
-  instructor   Instructor @relation("teaching", fields: [instructorId], references: [id], onDelete: Cascade)
-  students     User[]     @relation("enrolled")
+  id          String         @id @default(uuid())
+  name        String
+  majority    String
+  specialze   String
+  duration    Int // number of hours
+  isPublished Boolean        @default(false)
+  videoCount  Int
+  language    String
+  level       Level
+  price       Float
+  startDate   DateTime
+  endDate     DateTime?
+  rating      Float
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  instructor  Instructor[]   @relation("teaching")
+  students    User[]         @relation("enrolled")
+  review      CourseReview[]
+}
+
+model CourseReview {
+  id       String @id @default(uuid())
+  comment  String
+  rating   Float
+  userId   String
+  user     User   @relation("review", fields: [userId], references: [id], onDelete: Cascade)
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
