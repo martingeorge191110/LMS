@@ -9,6 +9,8 @@ import UserRouter from './routers/userRouter.js';
 import bodyParser from 'body-parser';
 import CertificateRouter from './routers/certificateRouter.js';
 import EducationRouter from './routers/educationRouter.js';
+import LinkRouter from './routers/linkRouters.js'
+import CoursesRouter from './routers/coursesRouter.js';
 
 dotenv.config()
 
@@ -26,9 +28,9 @@ server.use(
          ,credentials: true
       })
 );
-server.use(express.json())
+server.use(express.json({limit: '5gb'}))
 server.use(express.urlencoded({
-   limit: '50mb',
+   limit: '5gb',
    'extended': true
 }))
 
@@ -44,6 +46,12 @@ server.use("/api/certificate", CertificateRouter)
 
 /* Education Router */
 server.use("/api/education", EducationRouter)
+
+/* Link Router */
+server.use("/api/link", LinkRouter)
+
+/* Courses Router */
+server.use("/api/course", CoursesRouter)
 
 /* Middle Ware Error handling */
 server.use("*", ErrorHandling.responseError)
