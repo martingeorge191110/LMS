@@ -11,6 +11,7 @@ import CertificateRouter from './routers/certificateRouter.js';
 import EducationRouter from './routers/educationRouter.js';
 import LinkRouter from './routers/linkRouters.js'
 import CoursesRouter from './routers/coursesRouter.js';
+import CourseRevRouter from './routers/courseRevRouter.js';
 
 dotenv.config()
 
@@ -52,6 +53,9 @@ server.use("/api/link", LinkRouter)
 
 /* Courses Router */
 server.use("/api/course", CoursesRouter)
+
+/* Course Review Router */
+server.use("/api/review", CourseRevRouter)
 
 /* Middle Ware Error handling */
 server.use("*", ErrorHandling.responseError)

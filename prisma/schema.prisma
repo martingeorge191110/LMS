@@ -156,7 +156,7 @@ model CourseLecs {
 model CourseReview {
   id       String @id @default(uuid())
   comment  String
-  rating   Float
+  rating   Float?
   userId   String
   user     User   @relation("review", fields: [userId], references: [id], onDelete: Cascade)
   courseId String
