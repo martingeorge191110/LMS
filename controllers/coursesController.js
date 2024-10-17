@@ -77,6 +77,86 @@ class CourseController {
    }
 
    /**
+    * 
+    */
+   static updateOne = async (req, res, next) => {
+      const body = req.body
+      const {courseId} = req.query
+      const {id, authError, tokenError, tokenValid} = req
+
+      if (authError || tokenError || tokenValid)
+         return (next(ErrorHandling.tokenErrors(authError, tokenError, tokenValid)))
+
+      if (!courseId || courseId === '')
+         return (next(ErrorHandling.createError(400, "Did not recieved any course id!")))
+
+      try {
+         const adminCond = await CoursesUtilies.adminAuthorized(prismaObj, id)
+         if (!adminCond)
+            return (next(ErrorHandling.createError(401, "Unauthorized to do this Action!")))
+
+         const course = await prismaObj.course.update({
+            where: {
+               id: courseId
+            },
+            data: {
+               ...body
+            }
+         })
+
+         if (!course)
+            return (next(ErrorHandling.createError(404, "Course not found")))
+
+         return (this.response(res, 200, "Updated, Succesfuly!", course))
+      } catch (err) {
+         return (next(ErrorHandling.catchError("updating existing course")))
+      }
+   }
+
+   /**
+    * 
+    */
+   static addInstructor = async (req, res, next) => {
+      const {courseId, instructorId} = req.query
+      const {id, authError, tokenError, tokenValid} = req
+
+      if (authError || tokenError || tokenValid)
+         return (next(ErrorHandling.tokenErrors(authError, tokenError, tokenValid)))
+
+      if (!courseId || !instructorId)
+         return (next(ErrorHandling.createError(400, "Course id query and also instructorId query fields must be filled")))
+
+      try {
+         const adminCond = await CoursesUtilies.adminAuthorized(prismaObj, id)
+         if (!adminCond)
+            return (next(ErrorHandling.createError(403, "Unauthorized to do this Action!")))
+
+         const course = await prismaObj.course.update({
+            where: {
+               id: courseId
+            },
+            data: {
+               instructor: {
+                  connect: {
+                     userId: instructorId
+                  }
+               }
+            },
+            include: {
+               instructor: true
+            }
+         })
+
+         if (!course)
+            return (next(ErrorHandling.createError(404, "This user is not instructor!")))
+
+         return (this.response(res, 200, "Instructor has been added successfully!", course))
+      } catch (err) {
+         return (next(ErrorHandling.catchError("Adding new instructor to existing course")))
+      }
+   }
+
+   /**
     * uploadIntroVideo Controller to upload intro video
     * 
     * Description:

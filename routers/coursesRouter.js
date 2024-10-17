@@ -8,7 +8,10 @@ const CoursesRouter = express.Router()
 
 CoursesRouter.use(verifyToken)
 
-CoursesRouter.route("/admin/").post(CourseController.addOne)
+CoursesRouter.route("/admin/")
+                              .post(CourseController.addOne)
+                              .put(CourseController.updateOne)
+                              .patch(CourseController.addInstructor)
 
 
 CoursesRouter.route("/admin/video/").put(
