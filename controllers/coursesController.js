@@ -1,6 +1,7 @@
 import prismaObj from "../prisma/prisma.js";
 import ErrorHandling from "../middlewares/errorHandling.js";
 import CoursesUtilies from "../utilies/coursesUtilies.js";
+import PaymentUtilies from "../utilies/stripeUtilies.js";
 
 
 
@@ -44,7 +45,6 @@ class CourseController {
          return (next(ErrorHandling.createError(400, bodyValidation.message)))
 
       try {
-
          const adminCond = await CoursesUtilies.adminAuthorized(prismaObj, id)
 
          if (adminCond === false)
@@ -116,6 +116,128 @@ class CourseController {
          return (this.response(res, 200, "Updated, Succesfuly", uploadOnCloud))
       } catch (err) {
          return next(ErrorHandling.catchError("Error uploading intro video"));
+      }
+   }
+
+   /**
+    * searching controller
+    * 
+    * Description:
+    *             [1] --> get user id, searching query (if exist) and validate
+    *             [2] --> if query is not null retrieve courses meet requirements
+    *             [3] --> if query eq null retrieve all, then response
+    */
+   static searching = async (req, res, next) => {
+      const search = req.query
+      const { id, authError, tokenError, tokenValid } = req;
+
+      if (authError || tokenError || tokenValid)
+         return (next(ErrorHandling.tokenErrors(authError, tokenError, tokenValid)));
+
+      try {
+         let courses;
+         if (!search)
+            courses = await prismaObj.$queryRaw`SELECT * FROM Course`
+         else
+            courses = await prismaObj.course.findMany({
+                  where: search
+               })
+
+         if (!courses)
+            return (next(ErrorHandling.createError(404, "No Courses with needed requirements!")))
+
+         return (this.response(res, 200, "Courses retrieved ,Succesfuly!", courses))
+      } catch (err) {
+         return (next(ErrorHandling.catchError("retrieve courses")))
+      }
+   }
+
+   /**
+    * userPay Controller for starting payment session
+    * 
+    * Descriptipn:
+    *             [1] --> get course id, userid then validate
+    *             [2] --> get the course with all strudents enrolled in
+    *             [3] --> Check whether the student already enrolled in this course or not,
+    *                     then response with stripe session url
+    */
+   static userPay = async (req, res, next) => {
+      const {courseId} = req.query
+      const { id, authError, tokenError, tokenValid } = req;
+
+      if (authError || tokenError || tokenValid)
+         return (next(ErrorHandling.tokenErrors(authError, tokenError, tokenValid)));
+
+      try {
+         const findCourse = await prismaObj.course.findUnique({
+            where: {id: courseId},
+            include: {
+               students: true
+            }
+         })
+
+         findCourse.students.forEach((student) => {
+            if (student.id === id)
+               return (next(ErrorHandling.createError(400, "Already Enrolled")))
+         })
+         if (!findCourse)
+            return (next(ErrorHandling.createError(404, "This Course is not available!")))
+
+         const sessionUrl = await PaymentUtilies.stripePay(req, findCourse.price, findCourse.name, findCourse.id, id)
+         if (!sessionUrl)
+            return (next(ErrorHandling.createError(500, "Something went wrong during sending payment url!")))
+
+         return (this.response(res, 200, "Url!", sessionUrl))
+      } catch (err) {
+         return (next(ErrorHandling.catchError("Enrolling in course")))
+      }
+   }
+
+   /**
+    * successfulyPaid controller to save user in enrolled table
+    * 
+    * Description:
+    *             [1] --> get userid and courseid from url params
+    *             [2] --> update the enrolled table then response with the html file
+    */
+   static successfulyPaid = async (req, res, next) => {
+      const {userId, courseId} = req.params
+
+      try {
+         const course = await prismaObj.course.update({
+            where: {
+               id: courseId
+            },
+            data: {
+               students: {
+                  connect: {
+                     id: userId
+                  }
+               }
+            },
+            include: {
+               students: true
+            }
+         })
+
+         const userName = course.students.find(student => student.id === userId).firstName
+
+         return (res.send(`
+            <html>
+               <body>
+                  <h1>Congratulations, Mr. ${userName}!</h1>
+                  <p>You have successfully enrolled in ${course.name} course.</p>
+                  <script>
+                     setTimeout(() => {
+                        window.location.href = "/";
+                     }, 3000);
+                  </script>
+               </body>
+            </html>
+         `))
+   
+      } catch (err) {
+         return (next(ErrorHandling.catchError("registering in the course!")))
       }
    }
 }

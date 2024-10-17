@@ -16,5 +16,11 @@ CoursesRouter.route("/admin/video/").put(
    , CourseController.uploadIntroVideo)
 
 
+CoursesRouter.route("/user/")
+                              .get(CourseController.searching)
+                              .post(CourseController.userPay)
+
+
+CoursesRouter.route("/payment/success/:courseId/:userId").put(CourseController.successfulyPaid)
 
 export default CoursesRouter;
