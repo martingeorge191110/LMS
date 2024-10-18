@@ -45,6 +45,12 @@ enum MessageType {
   MEDIA
 }
 
+enum PostMediaType {
+  IMG
+  VIDEO
+  FILE
+}
+
 model User {
   id                String         @id @default(uuid())
   firstName         String
@@ -212,10 +218,11 @@ model Post {
 }
 
 model PostMedia {
-  id       String @id @default(uuid())
+  id       String        @id @default(uuid())
   mediaUrl String
+  type     PostMediaType
   postId   String
-  post     Post   @relation(fields: [postId], references: [id])
+  post     Post          @relation(fields: [postId], references: [id])
 }
 
 model PostComment {
@@ -233,8 +240,9 @@ model PostComment {
 }
 
 model PostComMedia {
-  id        String      @id @default(uuid())
+  id        String        @id @default(uuid())
   mediaUrl  String
+  type      PostMediaType
   commentId String
-  comment   PostComment @relation(fields: [commentId], references: [id])
+  comment   PostComment   @relation(fields: [commentId], references: [id])
 }
