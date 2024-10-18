@@ -12,10 +12,11 @@ import EducationRouter from './routers/educationRouter.js';
 import LinkRouter from './routers/linkRouters.js'
 import CoursesRouter from './routers/coursesRouter.js';
 import CourseRevRouter from './routers/courseRevRouter.js';
+import PostsRouter from './routers/postsRouter.js';
 
 dotenv.config()
 
-const envVariables = process.env
+export const envVariables = process.env
 const server = express()
 
 server.use(bodyParser.json({ limit: '50mb' }));
@@ -56,6 +57,9 @@ server.use("/api/course", CoursesRouter)
 
 /* Course Review Router */
 server.use("/api/review", CourseRevRouter)
+
+/* Posts Controller */
+server.use("/api/posts", PostsRouter)
 
 /* Middle Ware Error handling */
 server.use("*", ErrorHandling.responseError)
