@@ -77,6 +77,7 @@ model User {
   chats             Chat[]         @relation("chatParts")
   messages          Messsages[]    @relation("messageSender")
   seenMessages      SeenBy[]       @relation("userSeenBy")
+  userlikesReviews  CourseReview[] @relation("likeReview")
 }
 
 model Instructor {
@@ -154,13 +155,15 @@ model CourseLecs {
 }
 
 model CourseReview {
-  id       String @id @default(uuid())
-  comment  String
-  rating   Float?
-  userId   String
-  user     User   @relation("review", fields: [userId], references: [id], onDelete: Cascade)
-  courseId String
-  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  id           String @id @default(uuid())
+  comment      String
+  rating       Float?
+  likes        Int?
+  usersLikes   User[] @relation("likeReview")
+  userId       String
+  user         User   @relation("review", fields: [userId], references: [id], onDelete: Cascade)
+  courseId     String
+  course       Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
 
 model Chat {
