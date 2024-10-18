@@ -15,7 +15,7 @@ CoursesRouter.route("/admin/")
 
 
 CoursesRouter.route("/admin/video/").put(
-   uploadUtil.single('video')
+   uploadUtil('uploads').single('video')
    , CourseController.uploadIntroVideo)
 
 
