@@ -78,6 +78,10 @@ model User {
   messages          Messsages[]    @relation("messageSender")
   seenMessages      SeenBy[]       @relation("userSeenBy")
   userlikesReviews  CourseReview[] @relation("likeReview")
+  userPostsComments PostComment[]
+  userPosts         Post[]
+  userLiksPosts     Post[]         @relation("likePost")
+  userLikesComments PostComment[]  @relation("likeComment")
 }
 
 model Instructor {
@@ -192,4 +196,45 @@ model SeenBy {
   date      DateTime  @default(now())
   message   Messsages @relation("messageSeenBy", fields: [messageId], references: [id], onDelete: Cascade)
   user      User      @relation("userSeenBy", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id        String        @id @default(uuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id])
+  content   String        @default("")
+  likes     Int           @default(0)
+  usersLiks User[]        @relation("likePost")
+  comments  PostComment[]
+  media     PostMedia[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model PostMedia {
+  id       String @id @default(uuid())
+  mediaUrl String
+  postId   String
+  post     Post   @relation(fields: [postId], references: [id])
+}
+
+model PostComment {
+  id        String         @id @default(uuid())
+  content   String         @default("")
+  userId    String
+  user      User           @relation(fields: [userId], references: [id])
+  media     PostComMedia[]
+  likes     Int            @default(0)
+  postId    String
+  post      Post           @relation(fields: [postId], references: [id])
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  usersLiks User[]         @relation("likeComment")
+}
+
+model PostComMedia {
+  id        String      @id @default(uuid())
+  mediaUrl  String
+  commentId String
+  comment   PostComment @relation(fields: [commentId], references: [id])
 }
