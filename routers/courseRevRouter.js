@@ -15,4 +15,9 @@ CourseRevRouter.route("/course/")
                                  .put(CourseRevController.updateOne)
 
 
+CourseRevRouter.route("/course/like/")
+                                       .put(CourseRevController.likeOne)
+                                       .patch(CourseRevController.deleteLike)
+
+
 export default CourseRevRouter;
