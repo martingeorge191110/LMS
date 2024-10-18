@@ -207,7 +207,7 @@ model SeenBy {
 model Post {
   id        String        @id @default(uuid())
   userId    String
-  user      User          @relation(fields: [userId], references: [id])
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   content   String        @default("")
   likes     Int           @default(0)
   usersLiks User[]        @relation("likePost")
@@ -222,18 +222,18 @@ model PostMedia {
   mediaUrl String
   type     PostMediaType
   postId   String
-  post     Post          @relation(fields: [postId], references: [id])
+  post     Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model PostComment {
   id        String         @id @default(uuid())
   content   String         @default("")
   userId    String
-  user      User           @relation(fields: [userId], references: [id])
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   media     PostComMedia[]
   likes     Int            @default(0)
   postId    String
-  post      Post           @relation(fields: [postId], references: [id])
+  post      Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
   usersLiks User[]         @relation("likeComment")
@@ -244,5 +244,5 @@ model PostComMedia {
   mediaUrl  String
   type      PostMediaType
   commentId String
-  comment   PostComment   @relation(fields: [commentId], references: [id])
+  comment   PostComment   @relation(fields: [commentId], references: [id], onDelete: Cascade)
 }
