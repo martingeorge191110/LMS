@@ -67,7 +67,10 @@ class UserController {
     *             [2] --> after checking validation, retrieve user and response
     */
    static retrieveProfile = async (req, res, next) => {
-      const {id} = req
+      const {id, authError, tokenError, tokenValid} = req
+
+      if (authError || tokenError || tokenValid)
+         return (next(ErrorHandling.tokenErrors(authError, tokenError, tokenValid)))
 
       try {
          const user = await prismaObj.$queryRaw
@@ -127,6 +130,60 @@ class UserController {
          return (this.response(res, 200, "File uploaded, Seccesfuly!", avatar))
       } catch (err) {
          return (next(ErrorHandling.catchError("Updating infomration!")))
+      }
+   }
+
+   /**
+    * searching Controller
+    * 
+    * Description:
+    *             [1] --> get userId or name (based on searching case), then validate token
+    *             [2] --> if user clicked on specific userprofile, searching will be on bu userId
+    *             [3] --> if user Searching by name, or no searching details, then response
+    */
+   static searching = async (req, res, next) => {
+      const {userId, name} = req.query
+      const {authError, tokenError, tokenValid} = req
+
+      if (authError || tokenError || tokenValid)
+         return (next(ErrorHandling.tokenErrors(authError, tokenError, tokenValid)))
+
+      try {
+         let result;
+         if (userId) {
+            result = await prismaObj.$queryRaw`
+            SELECT u.id, u.firstName, u.lastName, u.isInstructor, u.isAdmin,
+            u.title, u.avatar, u.country, u.age, u.birthDate, u.role, u.bio, u.isOnline,
+            u.createdAt, u.gender,
+            (SELECT JSON_ARRAYAGG(JSON_OBJECT('entity', c.entity, 'date', c.date,'major', c.major, 'avatar', c.avatar, 'description', c.description))
+               FROM Certificate c
+               WHERE c.userId = u.id) AS certificates,
+            (SELECT JSON_ARRAYAGG(JSON_OBJECT('entity', e.entity, 'degree', e.degree, 'major', e.major, 'description', e.description, 'startDate', e.startDate, 'endDate', e.endDate))
+               FROM Education e
+               WHERE e.userId = u.id) AS educations,
+            (SELECT JSON_ARRAYAGG(JSON_OBJECT('website', l.website, 'link', l.link, 'description', l.description))
+               FROM Link l
+               WHERE l.userId = u.id) AS links
+            FROM User u
+            WHERE u.id = ${userId}`
+         } else if (!userId && name) {
+            result = await prismaObj.$queryRaw`
+            SELECT u.id, u.firstName, u.lastName, u.isInstructor, u.isAdmin,
+            u.title, u.avatar, u.role
+            FROM User u
+            WHERE LOWER(u.firstName) LIKE LOWER(CONCAT('%', ${name}, '%')) OR
+            LOWER(u.lastName) LIKE LOWER(CONCAT('%', ${name}, '%'))`
+         } else if (!userId && !name) {
+            result = await prismaObj.$queryRaw`
+            SELECT u.id, u.firstName, u.lastName, u.isInstructor, u.isAdmin,
+            u.title, u.avatar, u.role
+            FROM User u`
+         }
+
+         return (this.response(res, 200, result && result.length > 0 ? "User retrieved, Seccesfuly!" : "No users Found!", result))
+      } catch (err) {
+         console.log(err)
+         return (next(ErrorHandling.catchError("searching about users")))
       }
    }
 }
