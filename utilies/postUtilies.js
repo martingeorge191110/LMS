@@ -66,6 +66,22 @@ class PostsUtilies {
          return (null)
       }
    }
+   
+   /* Function to get public id from each url*/
+   static getPublicId = (url) => {
+      const arr = (url.slice(8).split("/"))
+
+      let startFrom;
+      for (let i = 0 ; i < arr.length; i++) {
+         if (arr[i] === 'upload'){
+            startFrom = i + 2
+            break
+         }
+      }
+      arr[arr.length - 1] = arr[arr.length - 1].split('.')[0]
+   
+      return (arr.slice(startFrom).join("/"))
+   }
 }
 
 

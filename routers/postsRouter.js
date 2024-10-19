@@ -15,6 +15,7 @@ PostsRouter.route("/")
                         {name: "video", maxCount:2},
                         {name: "image", maxCount: 10}
                      ]), PostsController.addOne)
+                     .delete(PostsController.deletePost)
 
 
 export default PostsRouter;
