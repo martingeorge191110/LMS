@@ -13,11 +13,14 @@ import LinkRouter from './routers/linkRouters.js'
 import CoursesRouter from './routers/coursesRouter.js';
 import CourseRevRouter from './routers/courseRevRouter.js';
 import PostsRouter from './routers/postsRouter.js';
+import WebHooksRouter from './routers/webhooks.js';
 
 dotenv.config()
 
 export const envVariables = process.env
 const server = express()
+
+server.use("/api", WebHooksRouter)
 
 server.use(bodyParser.json({ limit: '50mb' }));
 

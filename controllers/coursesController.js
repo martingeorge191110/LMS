@@ -2,8 +2,9 @@ import prismaObj from "../prisma/prisma.js";
 import ErrorHandling from "../middlewares/errorHandling.js";
 import CoursesUtilies from "../utilies/coursesUtilies.js";
 import PaymentUtilies from "../utilies/stripeUtilies.js";
+import dotenv from 'dotenv'
 
-
+dotenv.config()
 
 
 /**
@@ -280,46 +281,48 @@ class CourseController {
     *             [1] --> get userid and courseid from url params
     *             [2] --> update the enrolled table then response with the html file
     */
-   static successfulyPaid = async (req, res, next) => {
-      const {userId, courseId} = req.params
+   static stripeWebHook = async (req, res, next) => {
+      const stripe = PaymentUtilies.stripeInit();
+      const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+      const sig = req.headers['stripe-signature'];
+
+      let event;
+      try {
+         event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+      } catch (err) {
+         console.error('Webhook signature verification failed:', err.message);
+         return res.status(400).json({ message: `Webhook Error: ${err.message}` });
+      }
+
+      if (event.type === 'checkout.session.completed') {
+         const session = event.data.object;
+         await this.processSuccessfulPayment(session);
+      } else {
+         console.warn(`Unhandled event type ${event.type}`);
+      }
+
+      return res.status(200).json({ received: true });
+   }
+
+   static async processSuccessfulPayment(session) {
+      const courseId = session.metadata.courseId;
+      const userId = session.metadata.userId;
 
       try {
-         const course = await prismaObj.course.update({
-            where: {
-               id: courseId
-            },
+         await prismaObj.course.update({
+            where: { id: courseId },
             data: {
                students: {
-                  connect: {
-                     id: userId
-                  }
+                  connect: { id: userId }
                }
-            },
-            include: {
-               students: true
             }
-         })
-
-         const userName = course.students.find(student => student.id === userId).firstName
-
-         return (res.send(`
-            <html>
-               <body>
-                  <h1>Congratulations, Mr. ${userName}!</h1>
-                  <p>You have successfully enrolled in ${course.name} course.</p>
-                  <script>
-                     setTimeout(() => {
-                        window.location.href = "/";
-                     }, 3000);
-                  </script>
-               </body>
-            </html>
-         `))
-   
-      } catch (err) {
-         return (next(ErrorHandling.catchError("registering in the course!")))
+         });
+         console.log(`Successfully enrolled user ${userId} in course ${courseId}.`);
+      } catch (error) {
+         console.error(`Failed to enroll user ${userId} in course ${courseId}:`, error);
       }
    }
+   
 }
 
 export default CourseController;
