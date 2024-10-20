@@ -82,6 +82,28 @@ class PostsUtilies {
    
       return (arr.slice(startFrom).join("/"))
    }
+
+   /* Function to delete media from cloudinary */
+   static deleteMedia = async (arrayOfMedia, catchingErrors) => {
+
+      try {
+         for (let media of arrayOfMedia) {
+            await cloudinary.uploader.destroy(PostsUtilies.getPublicId(media.mediaUrl), {
+               resource_type: media.type === "FILE" ? 'raw' : media.type === "IMG" ? "image": "video"
+            }, (err, result) => {
+               if (err) {
+                  console.error(err)
+               } else {
+                  console.log(result)
+               }
+            })
+         }
+
+         return (0)
+      } catch (err) {
+         return (-1)
+      }
+   }
 }
 
 

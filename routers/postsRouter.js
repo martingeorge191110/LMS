@@ -16,6 +16,11 @@ PostsRouter.route("/")
                         {name: "image", maxCount: 10}
                      ]), PostsController.addOne)
                      .delete(PostsController.deletePost)
+                     .put(uploadUtil('postsMedia').fields([
+                        {name: "raw", maxCount: 3},
+                        {name: "video", maxCount:2},
+                        {name: "image", maxCount: 10}
+                     ]), PostsController.editPost)
 
 
 export default PostsRouter;

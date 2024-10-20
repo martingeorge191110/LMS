@@ -109,34 +109,104 @@ class PostsController {
          if (!post)
             return (next(ErrorHandling.createError(404, "This post not found!")))
 
-         for (let media of post.media) {
-            await cloudinary.uploader.destroy(PostsUtilies.getPublicId(media.mediaUrl), {
-               resource_type: media.type === "FILE" ? 'raw' : media.type === "IMG" ? "image": "video"
-            }, (err, result) => {
-               if (err) {
-                  console.error(err)
-               } else {
-                  console.log(result)
-               }
-            })
-         }
+         const cloudStat = await PostsUtilies.deleteMedia(post.media)
+         if (cloudStat < 0)
+            post.cloudStatPostMedia = -1
+         else
+            post.cloudStatPostMedia = 1
 
-         for (let comment of post.comments)
-            for (let media of comment.media) {
-                  await cloudinary.uploader.destroy(PostsUtilies.getPublicId(media.mediaUrl), {
-                     resource_type: media.type === "FILE" ? 'raw' : media.type === "IMG" ? "image": "video"
-                  }, (err, result) => {
-                     if (err) {
-                        console.error(err)
-                     } else {
-                        console.log(result)
-                     }
-                  })
-               }
+         for (let comment of post.comments) {
+            const cloudStat = await PostsUtilies.deleteMedia(comment.media)
+            if (cloudStat < 0)
+               post.cloudStatCommMedia = -1
+            else
+               post.cloudStatCommMedia = 1
+         }
 
          return (this.response(res, 200, "Post has been Deleted!", null))
       } catch (err) {
+         console.log(err)
          return (next(ErrorHandling.catchError("deleting the post")))
+      }
+   }
+
+   /**
+    * editPost Controller
+    * 
+    * Description:
+    *             [1] --> get userid and validate
+    *             [2] --> get post id to updated the post, also any deleted media ids, and also new media
+    *             [3] --> create conditions whether there is new media or delted media
+    *             [4] --> connect with cloudinay then response
+    */
+   static editPost = async (req, res, next) => {
+      const {postId, delMediaIds} = req.query
+      const {content} = req.body
+      const files = req.files
+      const {id, authError, tokenError, tokenValid} = req
+
+      if (authError || tokenError || tokenValid)
+         return (next(ErrorHandling.tokenErrors(authError, tokenError, tokenValid)))
+
+      const filesArray =  PostsUtilies.checkTypes(files)
+
+      const data = {
+         content
+      }
+
+      if (delMediaIds && delMediaIds.split(",").length > 0)
+         data.media = {
+            deleteMany: {
+               id: { in: delMediaIds.split(",") }
+            }
+         }
+      try {
+         const urlsArr = await PostsUtilies.postMediaCloud(filesArray)
+
+         if (urlsArr && urlsArr.length > 0)
+            data.media = {
+               ...data.media,
+               createMany: {
+                  data: urlsArr.map((element) => ({
+                     mediaUrl: element.url,
+                     type: element.type === "raw" ? "FILE" : element.type === "video" ? "VIDEO" : "IMG"
+                  }))
+               }
+            }
+
+         const postMediaDel = delMediaIds && delMediaIds.split(",").length > 0 ?
+         await prismaObj.postMedia.findMany({
+            where: {
+               id: {
+                  in: delMediaIds.split(",")
+               }
+            }, select: {
+               mediaUrl: true,
+               type: true
+            }
+         }) : []
+
+         const post = await prismaObj.post.update({
+            where: {
+               id: postId,
+               userId: id
+            }, include: {
+               media: true
+            }, data: data
+         })
+
+         const cloudStat = await PostsUtilies.deleteMedia(postMediaDel)
+         if (cloudStat < 0)
+            post.cloudStat = -1
+         else
+            post.cloudStat = 1
+
+         if (!post)
+            return (next(ErrorHandling.createError(404, "no post with this id found")))
+
+         return (this.response(res, 200, "Post has been updated!", post))
+      } catch (err) {
+         return (next(ErrorHandling.catchError("editting post")))
       }
    }
 }
