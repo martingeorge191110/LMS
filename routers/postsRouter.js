@@ -21,6 +21,7 @@ PostsRouter.route("/")
                         {name: "video", maxCount:2},
                         {name: "image", maxCount: 10}
                      ]), PostsController.editPost)
+                     .get(PostsController.getUserPosts)
 
 
 export default PostsRouter;

@@ -85,7 +85,6 @@ class PostsUtilies {
 
    /* Function to delete media from cloudinary */
    static deleteMedia = async (arrayOfMedia, catchingErrors) => {
-
       try {
          for (let media of arrayOfMedia) {
             await cloudinary.uploader.destroy(PostsUtilies.getPublicId(media.mediaUrl), {
@@ -103,6 +102,41 @@ class PostsUtilies {
       } catch (err) {
          return (-1)
       }
+   }
+
+   /* Find Posts selecting object */
+   static prismaFindPosts = (whereIdCondition) => {
+      return ({
+         where: {userId: whereIdCondition},
+         include: {
+            user: {
+               select: {
+                  id: true, firstName: true, lastName: true, avatar: true, isAdmin: true, isInstructor: true, title: true
+               }
+            },
+            media: true,
+            usersLiks: {
+               select: {
+                  id: true, firstName: true, lastName: true, avatar: true
+               }
+            },
+            comments: {
+               include: {
+                  user: {
+                     select: {
+                        id: true, firstName: true, lastName: true, avatar: true, isAdmin: true, isInstructor: true, title: true
+                     }
+                  },
+                  media: true,
+                  usersLiks: {
+                     select: {
+                        id: true, firstName: true, lastName: true, avatar: true
+                     }
+                  }
+               }
+            }
+         }
+      })
    }
 }
 

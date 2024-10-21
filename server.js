@@ -20,7 +20,6 @@ dotenv.config()
 export const envVariables = process.env
 const server = express()
 
-server.use("/api", WebHooksRouter)
 
 server.use(bodyParser.json({ limit: '50mb' }));
 
@@ -63,6 +62,9 @@ server.use("/api/review", CourseRevRouter)
 
 /* Posts Controller */
 server.use("/api/posts", PostsRouter)
+
+/* WebHook Router */
+server.use("/api", WebHooksRouter)
 
 /* Middle Ware Error handling */
 server.use("*", ErrorHandling.responseError)

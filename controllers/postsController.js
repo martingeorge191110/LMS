@@ -209,6 +209,33 @@ class PostsController {
          return (next(ErrorHandling.catchError("editting post")))
       }
    }
+
+   /**
+    * getUserPosts controller
+    * 
+    * Description:
+    *             [1] --> get userid, then validate token
+    *             [2] --> find user based on the condition based on which id, then response
+    */
+   static getUserPosts = async (req, res, next) => {
+      const {userId} = req.query
+      const {id, authError, tokenError, tokenValid} = req
+
+      if (authError || tokenError || tokenValid)
+         return (next(ErrorHandling.tokenErrors(authError, tokenError, tokenValid)))
+
+      try {
+         let result
+         if (userId)
+            result = await prismaObj.post.findMany(PostsUtilies.prismaFindPosts(userId))
+         else
+            result = await prismaObj.post.findMany(PostsUtilies.prismaFindPosts(id))
+
+         return (this.response(res, 200, "User posts retrieved, successfuly!", result))
+      } catch (err) {
+         return (next(ErrorHandling.catchError("retrieve user posts")))
+      }
+   }
 }
 
 export default PostsController;
