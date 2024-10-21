@@ -84,7 +84,7 @@ model User {
   messages          Messsages[]    @relation("messageSender")
   seenMessages      SeenBy[]       @relation("userSeenBy")
   userlikesReviews  CourseReview[] @relation("likeReview")
-  userPostsComments PostComment[]
+  userPostsComments PostComment[]  @relation("writeComment")
   userPosts         Post[]
   userLiksPosts     Post[]         @relation("likePost")
   userLikesComments PostComment[]  @relation("likeComment")
@@ -229,7 +229,7 @@ model PostComment {
   id        String         @id @default(uuid())
   content   String         @default("")
   userId    String
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User           @relation("writeComment", fields: [userId], references: [id], onDelete: Cascade)
   media     PostComMedia[]
   likes     Int            @default(0)
   postId    String

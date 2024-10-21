@@ -60,7 +60,10 @@ server.use("/api/course", CoursesRouter)
 /* Course Review Router */
 server.use("/api/review", CourseRevRouter)
 
-/* Posts Controller */
+/* Posts Router */
+server.use("/api/posts", PostsRouter)
+
+/* Post Comments Router */
 server.use("/api/posts", PostsRouter)
 
 /* WebHook Router */

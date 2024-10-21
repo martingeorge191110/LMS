@@ -3,7 +3,6 @@ Auth:
 
 Posts:
       - Mechanism of retriving new posts like unlimited scrolling
-      - give post like
 
 PostComment:
       - Every thing

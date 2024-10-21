@@ -2,6 +2,7 @@ import express from 'express'
 import verifyToken from '../middlewares/tokenVerification.js';
 import PostsController from '../controllers/postsController.js';
 import { uploadUtil } from '../middlewares/multer.js';
+import CommentsRouter from './commentsRouter.js';
 
 const PostsRouter = express.Router()
 
@@ -31,6 +32,9 @@ PostsRouter.route("/")
    usage: add or remove likes on post*/
 PostsRouter.route("/like/")
                            .patch(PostsController.manipulateLikes)
+
+
+PostsRouter.use("/comments/", CommentsRouter)
 
 
 export default PostsRouter;

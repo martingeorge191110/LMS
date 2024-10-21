@@ -255,24 +255,20 @@ class PostsController {
          return (next(ErrorHandling.createError(400, "Post id must be included!")))
 
       try {
-         const operationObj = {}
+         const dataObj = { usersLiks: {} }
 
-         if (operation === "add")
-            operationObj.connect = { id: id }
-         else
-            operationObj.disconnect = { id: id }
-
+         if (operation === "add") {
+            dataObj.likes = {increment: 1}
+            dataObj.usersLiks.connect = { id: id }
+         } else {
+            dataObj.likes = {decrement: 1}
+            dataObj.usersLiks.disconnect = { id: id }
+         }
          const post = await prismaObj.post.update({
                where: {
                   id: postId
                },
-               data: {
-                  likes: {
-                     increment: operation === "add" ? 1 : 0,
-                     decrement: operation === "remove" ? 1 : 0
-                  },
-                  usersLiks: operationObj
-               }
+               data: dataObj
             })
 
          if (!post)
