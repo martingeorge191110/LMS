@@ -8,7 +8,11 @@ const PostsRouter = express.Router()
 PostsRouter.use(verifyToken)
 
 
-
+/* Posts routes
+   Usage:--> adding new post
+         --> delete existing post
+         --> edit post
+         --> get specific user posts */
 PostsRouter.route("/")
                      .post(uploadUtil('postsMedia').fields([
                         {name: "raw", maxCount: 3},
@@ -22,6 +26,11 @@ PostsRouter.route("/")
                         {name: "image", maxCount: 10}
                      ]), PostsController.editPost)
                      .get(PostsController.getUserPosts)
+
+/* Actios Like route
+   usage: add or remove likes on post*/
+PostsRouter.route("/like/")
+                           .patch(PostsController.manipulateLikes)
 
 
 export default PostsRouter;

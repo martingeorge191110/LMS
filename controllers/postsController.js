@@ -236,6 +236,53 @@ class PostsController {
          return (next(ErrorHandling.catchError("retrieve user posts")))
       }
    }
+
+   /**
+    * manipulateLikes controller
+    * 
+    * Description:
+    *             [1] --> get post id, then validate
+    *             [2] --> create the like action then response
+    */
+   static manipulateLikes = async (req, res, next) => {
+      const {postId, operation} = req.query
+      const {id, authError, tokenError, tokenValid} = req
+
+      if (authError || tokenError || tokenValid)
+         return (next(ErrorHandling.tokenErrors(authError, tokenError, tokenValid)))
+
+      if (!postId || postId === '')
+         return (next(ErrorHandling.createError(400, "Post id must be included!")))
+
+      try {
+         const operationObj = {}
+
+         if (operation === "add")
+            operationObj.connect = { id: id }
+         else
+            operationObj.disconnect = { id: id }
+
+         const post = await prismaObj.post.update({
+               where: {
+                  id: postId
+               },
+               data: {
+                  likes: {
+                     increment: operation === "add" ? 1 : 0,
+                     decrement: operation === "remove" ? 1 : 0
+                  },
+                  usersLiks: operationObj
+               }
+            })
+
+         if (!post)
+            return (next(ErrorHandling.createError(404, "No posts found with this id!")))
+
+         return (this.response(res, 200, "successfuly", post))
+      } catch (err) {
+         return (next(ErrorHandling.catchError("like post")))
+      }
+   }
 }
 
 export default PostsController;

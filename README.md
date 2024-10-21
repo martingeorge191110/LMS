@@ -1,4 +1,12 @@
-Auth process:
+Auth:
+      - online and offline using events
 
-[1] --> registeration:
-                     taking user name, email and password and creating user, (in user controller we will tracking user profile complation)
+Posts:
+      - Mechanism of retriving new posts like unlimited scrolling
+      - give post like
+
+PostComment:
+      - Every thing
+
+Chat:
+      - Every thing
