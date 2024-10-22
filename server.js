@@ -3,6 +3,7 @@ import dotenv from "dotenv"
 import cors from "cors"
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import http from 'http';
 import ErrorHandling from "./middlewares/errorHandling.js";
 import AuthRouter from './routers/authRouter.js';
 import UserRouter from './routers/userRouter.js';
@@ -14,6 +15,7 @@ import CoursesRouter from './routers/coursesRouter.js';
 import CourseRevRouter from './routers/courseRevRouter.js';
 import PostsRouter from './routers/postsRouter.js';
 import WebHooksRouter from './routers/webhooks.js';
+import { socketInitialize } from './webSocket.js';
 
 dotenv.config()
 
@@ -72,6 +74,12 @@ server.use("/api", WebHooksRouter)
 /* Middle Ware Error handling */
 server.use("*", ErrorHandling.responseError)
 
-server.listen(envVariables.PORT || 7000, () => {
+const httpServer = http.createServer(server)
+
+/* Web Socket initiiale */
+export const io = socketInitialize(httpServer)
+
+
+httpServer.listen(envVariables.PORT || 7000, () => {
    console.log("Server listening to Port", envVariables.PORT || 7000)
 })
