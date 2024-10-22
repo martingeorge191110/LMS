@@ -5,7 +5,7 @@ Posts:
       - Mechanism of retriving new posts like unlimited scrolling
 
 PostComment:
-      - Every thing
+      - Version (1) Done
 
 Chat:
       - Every thing
