@@ -16,6 +16,7 @@ import CourseRevRouter from './routers/courseRevRouter.js';
 import PostsRouter from './routers/postsRouter.js';
 import WebHooksRouter from './routers/webhooks.js';
 import { socketInitialize } from './webSocket.js';
+import ChatRouter from './routers/chatRouter.js';
 
 dotenv.config()
 
@@ -67,6 +68,9 @@ server.use("/api/posts", PostsRouter)
 
 /* Post Comments Router */
 server.use("/api/posts", PostsRouter)
+
+/* Chat Router */
+server.use("/api/chat", ChatRouter)
 
 /* WebHook Router */
 server.use("/api", WebHooksRouter)
