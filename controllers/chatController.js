@@ -375,6 +375,49 @@ class ChatController {
          return (next(ErrorHandling.catchError("admin removing his slef")))
       }
    }
+
+   /**
+    * searchPersonelRoom controller
+    * 
+    * Description:
+    *             [1] --> get userid, and token validate
+    *             [2] --> search about the chat , then response
+    */
+   static searchPersonelRoom = async (req, res, next) => {
+      const {userId} = req.query
+      const {id, authError, tokenError, tokenValid} = req
+
+      if (authError || tokenError || tokenValid)
+         return (next(ErrorHandling.tokenErrors(authError, tokenError, tokenValid)))
+
+      const userSelect = ChatUtilies.selectItems(['id', 'firstName', 'lastName', 'title', 'isInstructor', 'isAdmin', 'isOnline', 'avatar'])
+      if (!userSelect)
+         return (next(ErrorHandling.createError(400, 'Selectments is not Array')))
+
+      try {
+         const chat = await prismaObj.chat.findFirst({
+            where: {
+               chatCategory: "PERSONEL",
+               AND: [
+                  { participants: { some: { id: id } } },
+                  { participants: { some: { id: userId} } }
+               ]
+            },
+            include: {
+               participants: { select: userSelect },
+               messages: { select: {
+                  id: true, senderId: true, type: true, message: true, seenBy: {
+                     select: { userId: true, date: true }
+                  }
+               }}
+            }
+         })
+
+         return (this.response(res, 200, "Chat Retrieved!", chat))
+      } catch (err) {
+         return (next(ErrorHandling.catchError("searching about chat room")))
+      }
+   }
 }
 
 export default ChatController;

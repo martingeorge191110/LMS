@@ -14,6 +14,7 @@ ChatRouter.route("/")
                      .post(ChatController.createRoom)
                      .get(ChatController.displayChat)
 
+ChatRouter.route("/personel/").get(ChatController.searchPersonelRoom)
 
 ChatRouter.route("/remove/")
                            .patch(ChatController.removeUserFromRoom)
