@@ -28,6 +28,26 @@ class ChatUtilies {
          }
       }
    }
+
+   /* Function fo checking whether user is admin or not */
+   static checkUserAdmin = async (prismaObj, chatId) => {
+      try {
+         const admins = await prismaObj.chat.findUnique({
+            where: {
+               id: chatId
+            },
+            select: {
+               admins: { select: {
+                  id: true
+               }}
+            }
+         })
+
+         return (admins)
+      } catch (err) {
+         return (null)
+      }
+   }
 }
 
 export default ChatUtilies;
