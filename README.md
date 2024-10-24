@@ -8,4 +8,6 @@ PostComment:
       - Version (1) Done
 
 Chat:
-      - Every thing
+      send message has been done -> alert notification for online users related to this chat
+                                 -> add event for joining chat and seen all past messsages
+                                 -> after disconnecting, user removed form all chat rooms as an online

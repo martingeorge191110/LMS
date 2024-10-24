@@ -1,10 +1,13 @@
 import express from 'express';
 import ChatController from '../controllers/chatController.js';
 import verifyToken from '../middlewares/tokenVerification.js';
-
+import MessagesRouter from './messagesRouter.js';
 
 
 const ChatRouter = express.Router()
+
+/* Chat Messages Router */
+ChatRouter.use("/message", MessagesRouter)
 
 ChatRouter.use(verifyToken)
 

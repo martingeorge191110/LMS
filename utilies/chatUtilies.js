@@ -48,6 +48,33 @@ class ChatUtilies {
          return (null)
       }
    }
+
+   /* Function to create new chat room
+      if not chat rooms exists between 2 users*/
+   static createChatRoom = async (primsa, usersIds) => {
+      if (!Array.isArray(usersIds))
+         return (null)
+
+      try{
+         let getChatId = await primsa.chat.create({
+            data: {
+               name: "",
+               bio: "",
+               participants: {
+                  connect: usersIds.map(id => ({ id }))
+               }
+            },
+            select: {
+               id: true
+            }
+         })
+
+         getChatId = getChatId.id
+         return (getChatId)
+      } catch (err) {
+         return (null)
+      }
+   }
 }
 
 export default ChatUtilies;
