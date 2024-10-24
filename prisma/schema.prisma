@@ -40,11 +40,6 @@ enum ChatType {
   GROUP
 }
 
-enum MessageType {
-  TEXT
-  MEDIA
-}
-
 enum PostMediaType {
   IMG
   VIDEO
@@ -81,7 +76,7 @@ model User {
   courses           Course[]       @relation("enrolled")
   comments          CourseReview[] @relation("review")
   chats             Chat[]         @relation("chatParts")
-  messages          Messsages[]    @relation("messageSender")
+  messages          Messages[]     @relation("messageSender")
   seenMessages      SeenBy[]       @relation("userSeenBy")
   userlikesReviews  CourseReview[] @relation("likeReview")
   userPostsComments PostComment[]  @relation("writeComment")
@@ -178,36 +173,44 @@ model CourseReview {
 }
 
 model Chat {
-  id           String      @id @default(uuid())
+  id           String     @id @default(uuid())
   name         String
   bio          String
-  chatCategory ChatType    @default(PERSONEL)
-  participants User[]      @relation("chatParts")
-  admins       User[]      @relation("chatAdmin")
-  messages     Messsages[] @relation("chatRoom")
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  chatCategory ChatType   @default(PERSONEL)
+  participants User[]     @relation("chatParts")
+  admins       User[]     @relation("chatAdmin")
+  messages     Messages[] @relation("chatRoom")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
-model Messsages {
-  id       String      @id @default(uuid())
-  senderId String
-  type     MessageType @default(TEXT)
-  message  String
-  user     User        @relation("messageSender", fields: [senderId], references: [id], onDelete: Cascade)
-  chatId   String
-  chat     Chat        @relation("chatRoom", fields: [chatId], references: [id], onDelete: Cascade)
-  date     DateTime    @default(now())
-  seenBy   SeenBy[]    @relation("messageSeenBy")
+model Messages {
+  id           String         @id @default(uuid())
+  senderId     String
+  message      String
+  user         User           @relation("messageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  chatId       String
+  chat         Chat           @relation("chatRoom", fields: [chatId], references: [id], onDelete: Cascade)
+  date         DateTime       @default(now())
+  seenBy       SeenBy[]       @relation("messageSeenBy")
+  MessageMedia MessageMedia[]
+}
+
+model MessageMedia {
+  id        String        @id @default(uuid())
+  type      PostMediaType
+  mediaUrl  String
+  messageId String
+  message   Messages      @relation(fields: [messageId], references: [id], onDelete: Cascade)
 }
 
 model SeenBy {
-  id        String    @id @default(uuid())
+  id        String   @id @default(uuid())
   messageId String
   userId    String
-  date      DateTime  @default(now())
-  message   Messsages @relation("messageSeenBy", fields: [messageId], references: [id], onDelete: Cascade)
-  user      User      @relation("userSeenBy", fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @default(now())
+  message   Messages @relation("messageSeenBy", fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation("userSeenBy", fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Post {
