@@ -2,6 +2,7 @@ import ErrorHandling from "../middlewares/errorHandling.js";
 import prismaObj from "../prisma/prisma.js";
 import { io } from "../server.js";
 import ChatUtilies from "../utilies/chatUtilies.js";
+import PostsUtilies from "../utilies/postUtilies.js";
 import { users, chatRooms } from "../webSocket.js";
 
 
@@ -29,11 +30,13 @@ class MessagesController {
     *             [1] --> get chatId (if not null), reciever id in case of chatid is null,
     *                      and message body, this validate
     *             [2] --> in case of there is not chat id, then will create a personel chat category
-    *             [3] --> send message to the chat room, and also emit socket event, tjhen response
+    *             [3] --> in case of media urls created, get urls and its type in an array
+    *             [4] --> send message to the chat room, and also emit socket event, tjhen response
     */
    static sendMessage = async (req, res, next) => {
-      const { chatId, recieverId } = req.query
-      const {type, message} = req.body
+      const {chatId, recieverId} = req.query
+      const {message} = req.body
+      const files = req.files
       const {id, authError, tokenError, tokenValid} = req
 
       if (authError || tokenError || tokenValid)
@@ -43,6 +46,7 @@ class MessagesController {
       if (!userSelect)
          return (next(ErrorHandling.createError(400, 'Selectments is not Array')))
 
+      const filesArray = PostsUtilies.checkTypes(files)
       try {
          let getChatId = chatId
          /* in this case the chat will be personel, any group will send his chatId */
@@ -52,14 +56,27 @@ class MessagesController {
                return (next(ErrorHandling.createError(500, "something went wrong during creating new chat room!")))
          }
 
-         const newMessage = await prismaObj.messsages.create({
-            data: {
-               senderId: id,
-               chatId: getChatId,
-               type: type.toUpperCase(),
-               message: message,
-            },
+         const prismaQuery = {
+            senderId: id,
+            chatId: getChatId,
+            message: message
+         }
+
+         if (filesArray && filesArray.length > 0) {
+            const urlsArr = await PostsUtilies.postMediaCloud(filesArray)
+            if (!urlsArr || urlsArr.length === 0)
+               return (next(ErrorHandling.createError(404, "no urls could be found!")))
+
+            prismaQuery.MessageMedia = {
+               createMany: {
+                  data: urlsArr.map((ele) => ({mediaUrl: ele.url, type: ele.type === "raw" ? "FILE" : ele.type === "video" ? "VIDEO" : "IMG"}))
+               }
+            }
+         }
+         const newMessage = await prismaObj.messages.create({
+            data: prismaQuery,
             include: {
+               MessageMedia: true,
                seenBy: true,
                chat: {
                   include: {
@@ -135,6 +152,27 @@ class MessagesController {
       } catch (err) {
          console.log(err)
          return (next(ErrorHandling.catchError("deleting a message")))
+      }
+   }
+
+   /**
+    * 
+    */
+   static editMessage = async (req, res, next) => {
+      const {messageId} = req.query
+      const body = req.body
+      const {id, authError, tokenError, tokenValid} = req
+
+      if (authError || tokenError || tokenValid)
+         return (next(ErrorHandling.tokenErrors(authError, tokenError, tokenValid)))
+
+      if (!messageId || messageId === '')
+         return (next(ErrorHandling.createError(400, "messageId must be included in request query object!")))
+
+      try {
+
+      } catch (err) {
+         return (next(ErrorHandling.catchError("edit a message")))
       }
    }
 }
