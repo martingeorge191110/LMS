@@ -6,6 +6,7 @@
 - [API Routers](#api-routers)
 - [Database Schema](#database-schema)
 - [WebSocket Overview](#websocket-overview)
+- [Database Schema](#models-and-relationships)
 
 ## Project Overview
 
