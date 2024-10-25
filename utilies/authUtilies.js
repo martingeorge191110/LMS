@@ -56,6 +56,37 @@ class AuthUtilies {
          return (false)
       }
    }
+
+   /* Function to send a new password for created instructor */
+   static sendPasswordToInstructor = async (email, password) => {
+      const transporter = nodemailer.createTransport({
+         service: "gmail",
+         auth: {
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_PASS
+         }
+      })
+
+      const mail = {
+         from: process.env.GMAIL_USER,
+         to: email,
+         subject: 'Instructor Password',
+         html: `
+            <h1>Hello our inspiring instructor!</h1>
+            <p>This is your current password for login</p>
+            <h2>${password}</h2>
+            <h3>you can reset password by using our reset password process!</h3>
+         `,
+      }
+
+      try {
+         await transporter.sendMail(mail)
+
+         return (true)
+      } catch (err) {
+         return (false)
+      }
+   }
 }
 
 export default AuthUtilies;
