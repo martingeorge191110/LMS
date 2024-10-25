@@ -1,4 +1,4 @@
-# Project Name
+# LMS Project
 
 ## Table of Contents
 
