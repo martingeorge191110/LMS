@@ -84,6 +84,7 @@ model User {
   userLiksPosts     Post[]         @relation("likePost")
   userLikesComments PostComment[]  @relation("likeComment")
   chatadmin         Chat[]         @relation("chatAdmin")
+  userLikesMessages MessageLikes[] @relation("userLikeMessage")
 }
 
 model Instructor {
@@ -188,6 +189,8 @@ model Messages {
   id           String         @id @default(uuid())
   senderId     String
   message      String
+  likes        Int            @default(0)
+  userLikes    MessageLikes[]
   user         User           @relation("messageSender", fields: [senderId], references: [id], onDelete: Cascade)
   chatId       String
   chat         Chat           @relation("chatRoom", fields: [chatId], references: [id], onDelete: Cascade)
@@ -202,6 +205,14 @@ model MessageMedia {
   mediaUrl  String
   messageId String
   message   Messages      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+}
+
+model MessageLikes {
+  id        String   @id @default(uuid())
+  messageId String
+  message   Messages @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation("userLikeMessage", fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model SeenBy {
