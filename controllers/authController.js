@@ -1,9 +1,11 @@
 import { compareSync, hashSync } from "bcrypt";
-import validator from 'validator'
+import validator, { isEmail } from 'validator'
 import ErrorHandling from "../middlewares/errorHandling.js";
 import prismaObj from "../prisma/prisma.js";
 import AuthValidation from "../utilies/authValidator.js";
 import AuthUtilies from "../utilies/authUtilies.js";
+import CoursesUtilies from "../utilies/coursesUtilies.js";
+import uuid from 'uuid'
 
 
 /**
@@ -222,6 +224,73 @@ class AuthController {
       }
    }
 
+   /**
+    * createInstructor controller
+    * 
+    * Description:
+    *             [1] --> get user details and admin id
+    */
+   static createInstructor = async (req, res, next) => {
+      const {email, firstName, lastName} = req.body
+      const {id, authError, tokenError, tokenValid} = req
+
+      if (authError || tokenError || tokenValid)
+         return (next(ErrorHandling.tokenErrors(authError, tokenError, tokenValid)))
+
+      if (!isEmail(email))
+         return (next(ErrorHandling.createError(400, "Email not found!")))
+
+      try {
+         const authAdmin = await CoursesUtilies.adminAuthorized(prismaObj, id)
+         if (!authAdmin)
+            return (next(ErrorHandling.createError(403, "You are not authorized to do this Action!")))
+
+         let user = await prismaObj.user.update({
+            where: { email },
+            data: {
+               isInstructor: true,
+               role: "INSTRUCTOR"
+            }
+         })
+
+         let instructor;
+         if (user) {
+            instructor = await prismaObj.instructor.create({
+               data: {
+                  userId: user.id
+               },
+               include: {
+                  courses: true
+               }
+            })
+            user.instructorDetails = instructor
+         } else {
+            const genPassword = uuid.v4().split("-").pop()
+            const hashedPass = hashSync(genPassword, 10)
+
+            if (!firstName || !lastName)
+               return (next(ErrorHandling.createError(400, "Name fields is not completed!")))
+
+            user = await prismaObj.user.create({
+               data: {
+                  firstName, lastName, email, password: hashedPass, role: "INSTRUCTOR", isInstructor: true,
+                  instructor: {
+                     create: {}
+                  }
+               },
+               include: {
+                  instructor: true
+               }
+            })
+            const sendMail = await AuthUtilies.sendPasswordToInstructor(email, genPassword)
+            user.mailSent = sendMail
+         }
+
+         this.response(res, 201, "Hello our new instructor!", user)
+      } catch (err) {
+         return (next(ErrorHandling.catchError("creating new instructor")))
+      }
+   }
 }
 
 

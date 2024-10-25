@@ -34,4 +34,14 @@ AuthRouter.route("/reset-passwrod")
                                     .put(AuthController.resetPass)
 
 
+/**
+ * instructor route
+ * 
+ * method:
+ * POST: --> just for add new instructor if user has account or not
+ */
+AuthRouter.route("/instructor")
+                              .post(AuthController.createInstructor)
+
+
 export default AuthRouter;
