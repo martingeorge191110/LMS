@@ -15,5 +15,11 @@ MessagesRouter.route("/")
                            {name: "image", maxCount: 10}
                         ]), MessagesController.sendMessage)
                         .delete(MessagesController.deleteMessage)
+                        .patch(MessagesController.editMessage)
+
+
+MessagesRouter.route("/like/")
+                              .post(MessagesController.addLike)
+                              .put(MessagesController.removeLike)
 
 export default MessagesRouter;

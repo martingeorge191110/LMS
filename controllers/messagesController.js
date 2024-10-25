@@ -76,11 +76,11 @@ class MessagesController {
          const newMessage = await prismaObj.messages.create({
             data: prismaQuery,
             include: {
-               MessageMedia: true,
-               seenBy: true,
                chat: {
                   include: {
-                     participants: { select: userSelect }
+                     participants: {
+                        select: userSelect
+                     }
                   }
                }
             }
@@ -113,8 +113,21 @@ class MessagesController {
                console.error("Error marking messages as seen:", error);
             }
          }
+         const retrieveMessage = await prismaObj.messages.findUnique({
+            where: {id: newMessage.id},
+            include: {
+               MessageMedia: true,
+               seenBy: {
+                  select: {
+                     user: {
+                        select: userSelect
+                     }
+                  }
+               }
+            }
+         })
 
-         return (this.response(res, 201, "Message sent successfully!", newMessage))
+         return (this.response(res, 201, "Message sent successfully!", retrieveMessage))
       } catch (err) {
          return (next(ErrorHandling.catchError("sending message")))
       }
@@ -138,29 +151,42 @@ class MessagesController {
          return (next(ErrorHandling.createError(400, "messageId must be included in request query object!")))
 
       try {
-         const message = await prismaObj.messsages.delete({
-            where: { id: messageId, senderId: id}
+         const message = await prismaObj.messages.delete({
+            where: { id: messageId, senderId: id},
+            include: {
+               MessageMedia: true
+            }
          })
 
          if (!message)
             return (next(ErrorHandling.createError(404, "Message not found!")))
+
+         const cloudStat = await PostsUtilies.deleteMedia(message.MessageMedia)
+         if (cloudStat < 0)
+            message.cloudStatMedia = -1
+         else
+            message.cloudStatMedia = 1
+
          if (chatRooms[message.chatId]) {
             ChatUtilies.emitMessage(io, chatRooms[message.chatId], users, "deleteMessage", message)
          }
 
          return (this.response(res, 200, "message has been deleted", message))
       } catch (err) {
-         console.log(err)
          return (next(ErrorHandling.catchError("deleting a message")))
       }
    }
 
    /**
+    * editMessage controller
     * 
+    * Description:
+    *             [1] --> get messageId, userId and new message text, then validate
+    *             [2] --> update the message then response
     */
    static editMessage = async (req, res, next) => {
       const {messageId} = req.query
-      const body = req.body
+      const {message} = req.body
       const {id, authError, tokenError, tokenValid} = req
 
       if (authError || tokenError || tokenValid)
@@ -169,10 +195,116 @@ class MessagesController {
       if (!messageId || messageId === '')
          return (next(ErrorHandling.createError(400, "messageId must be included in request query object!")))
 
-      try {
+      if (!message || message === '')
+         return (next(ErrorHandling.createError(400, "Message text cannot be null or empty!")))
 
+      try {
+         const updatedMessage = await prismaObj.messages.update({
+            where: {id: messageId, senderId: id},
+            data: {message: message},
+            include: {MessageMedia: true}
+         })
+
+         if (chatRooms[updatedMessage.chatId])
+            ChatUtilies.emitMessage(io, chatRooms[updatedMessage.chatId], users, "messageUpdated", updatedMessage)
+
+         return (this.response(res, 200, "Message has been updated!", updatedMessage))
       } catch (err) {
          return (next(ErrorHandling.catchError("edit a message")))
+      }
+   }
+
+   /**
+    * addLike controller
+    * 
+    * Description:
+    *             [1] --> get message id and userid, then validate
+    *             [2] --> update message likes, and also create messagelike data
+    *             [3] --> emit new socket event, then resposne
+    */
+   static addLike = async (req, res, next) => {
+      const {messageId} = req.query
+      const {id, authError, tokenError, tokenValid} = req
+
+      if (authError || tokenError || tokenValid)
+         return (next(ErrorHandling.tokenErrors(authError, tokenError, tokenValid)))
+
+      const userSelect = ChatUtilies.selectItems(['id', 'firstName', 'lastName', 'title', 'isInstructor', 'isAdmin', 'isOnline', 'avatar'])
+      if (!userSelect)
+         return (next(ErrorHandling.createError(400, 'Selectments is not Array')))
+
+      try {
+         const message = await prismaObj.messages.update({
+            where: {id: messageId},
+            data: {
+               likes: {increment: 1}, userLikes: {
+                  create: {userId: id}
+               }
+            },
+            include: {
+               userLikes: {
+                  select: {user: {
+                     select: userSelect
+                  }}
+               }
+            }
+         })
+
+         if (!message)
+            return (next(ErrorHandling.createError(404, "Message not found!")))
+
+         if (chatRooms[message.chatId])
+            ChatUtilies.emitMessage(io, chatRooms[message.chatId], users, "likeMessage", message)
+
+         return (this.response(res, 200, "like action", message))
+      } catch (err) {
+         console.log(err)
+         return (next(ErrorHandling.catchError("liking the message")))
+      }
+   }
+
+   /**
+    * 
+    */
+   static removeLike = async (req, res, next) => {
+      const {messageId} = req.query
+      const {id, authError, tokenError, tokenValid} = req
+
+      if (authError || tokenError || tokenValid)
+         return (next(ErrorHandling.tokenErrors(authError, tokenError, tokenValid)))
+
+      const userSelect = ChatUtilies.selectItems(['id', 'firstName', 'lastName', 'title', 'isInstructor', 'isAdmin', 'isOnline', 'avatar'])
+      if (!userSelect)
+         return (next(ErrorHandling.createError(400, 'Selectments is not Array')))
+
+      try {
+         const message = await prismaObj.messages.update({
+            where: {id: messageId},
+            data: {
+               likes: {decrement: 1} 
+            },
+            include: {
+               userLikes: {
+                  include: {user: {
+                     select: userSelect
+                  }}
+               }
+            }
+         })
+
+         await prismaObj.messageLikes.delete({
+            where: {userId: id, messageId: messageId}
+         })
+
+         if (!message)
+            return (next(ErrorHandling.createError(404, "Message not found!")))
+
+         if (chatRooms[message.chatId])
+            ChatUtilies.emitMessage(io, chatRooms[message.chatId], users, "likeMessage", message)
+
+         return (this.response(res, 200, "like action", message))
+      } catch (err) {
+         return (next(ErrorHandling.catchError("removing message like")))
       }
    }
 }

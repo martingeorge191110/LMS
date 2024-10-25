@@ -41,7 +41,7 @@ export const socketInitialize = (server) => {
          console.log(chatRooms[chatId], "has new joined user", "user is: ", userId)
          // Optionally, emit a message back to the client
          try {
-                  const messages = await prismaObj.messsages.findMany({
+                  const messages = await prismaObj.messages.findMany({
                      where: {
                            chatId: chatId,
                            seenBy: {
